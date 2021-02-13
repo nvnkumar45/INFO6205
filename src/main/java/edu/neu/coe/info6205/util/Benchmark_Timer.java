@@ -4,6 +4,10 @@
 
 package edu.neu.coe.info6205.util;
 
+import edu.neu.coe.info6205.sort.Helper;
+import edu.neu.coe.info6205.sort.simple.InsertionSort;
+
+import java.util.Random;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -125,4 +129,72 @@ public class Benchmark_Timer<T> implements Benchmark<T> {
     private final Consumer<T> fPost;
 
     final static LazyLogger logger = new LazyLogger(Benchmark_Timer.class);
+
+    public static void benchmark_insertionsort(Integer[] array,String description,int reps){
+        InsertionSort sort = new InsertionSort();
+
+        final Helper<Integer> helper = sort.getHelper();
+        UnaryOperator<Integer[]> preFunction = (xs) -> helper.preProcess(array);
+        Consumer<Integer[]> insertion_sort = (xs) -> sort.sort(array);
+        Consumer<Integer[]> postFuntion = xs -> helper.postProcess(array);
+
+        Benchmark_Timer<Integer[]> timer = new Benchmark_Timer<>(description,preFunction,insertion_sort,postFuntion);
+
+
+        double mean_time = timer.run(array, reps);
+        System.out.println("Insertion Sort of "+ description + " with "+reps+" reps: " + mean_time + " millisecs");
+
+    }
+
+    public static void main(String[] args){
+        Random random = new Random();
+        int reps = 50;                                  // No. of repetitions
+        int n = 5;                                      // No. of different values of Array length
+        int length = 1000;                                // Size of array
+        for(int k = n ; k>0; k--) {                     // Checking for 5 different sizes of an array
+            Integer arr_rand[] = new Integer[length];           // Initializing a random array
+            Integer arr_sorted[] = new Integer[length];         // Initializing an ordered array
+            Integer arr_partial[] = new Integer[length];        // Initializing a partially ordered array
+            Integer arr_rev[] = new Integer[length];            // Initializing a reverse ordered array
+
+
+            /**
+                 Creating a random array
+             */
+            for(int index =0; index<length; index++)
+                arr_rand[index] = random.nextInt();
+
+            /**
+                 Creating an ordered array
+             */
+            for(int index =0; index<length; index++)
+                arr_sorted[index] = index;
+
+            /**
+                 Creating a reverse ordered array
+            */
+            int x =length;
+            for(int index =0; index<length; index++){
+                arr_rev[index] = x;
+                x--;
+            }
+
+            /**
+                 Creating a partially ordered array
+             */
+            for(int index = 0; index<(length/2); index++)
+                arr_partial[index] = index;
+            for(int index = length/2; index<length; index++)
+                arr_partial[index] = random.nextInt()+length/2;
+
+
+
+            benchmark_insertionsort(arr_rand,"Random Array of length "+length,reps);
+            benchmark_insertionsort(arr_sorted,"Ordered Array of length "+length,reps);
+            benchmark_insertionsort(arr_partial,"Partial Ordered Array of length "+length,reps);
+            benchmark_insertionsort(arr_rev,"Reverse Ordered Array of length "+length,reps);
+
+            length*=2;
+        }
+    }
 }
