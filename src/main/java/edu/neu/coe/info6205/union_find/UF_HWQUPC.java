@@ -7,12 +7,16 @@
  */
 package edu.neu.coe.info6205.union_find;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
 
 /**
  * Height-weighted Quick Union with Path Compression
  */
 public class UF_HWQUPC implements UF {
+
     /**
      * Ensure that site p is connected to site q,
      *
@@ -81,7 +85,13 @@ public class UF_HWQUPC implements UF {
     public int find(int p) {
         validate(p);
         int root = p;
-        // TO BE IMPLEMENTED
+
+        if(pathCompression)
+            root = doPathCompression(root);    // finding the root and performing path compression
+        else{                                  // Just traversing and finding the root
+            while (root != parent[root])
+                root = parent[root];
+        }
         return root;
     }
 
@@ -169,12 +179,52 @@ public class UF_HWQUPC implements UF {
 
     private void mergeComponents(int i, int j) {
         // TO BE IMPLEMENTED make shorter root point to taller one
+        if(height[i]<height[j]){  //checking which height is taller
+            updateParent(i,j);
+            updateHeight(j,i);
+        }
+        else{
+            updateParent(j,i);
+            updateHeight(i,j);
+        }
     }
 
     /**
      * This implements the single-pass path-halving mechanism of path compression
      */
-    private void doPathCompression(int i) {
+    private int doPathCompression(int i) {
         // TO BE IMPLEMENTED update parent to value of grandparent
+        while(i != parent[i]) {
+            parent[i] = parent[parent[i]];    // update parent to grandparent =>  path compression
+            i = parent[i];                    // Finding the next node
+        }
+        return i;
     }
+
+    public static int count(int n, UF_HWQUPC obj){
+        Random random = new Random();
+        int counter = 0;
+        while(obj.count!=1){
+            int first = random.nextInt(n);
+            int second = random.nextInt(n);
+            counter++;
+            if(!obj.connected(first,second)){
+                obj.union(first,second);
+                //System.out.println(first+","+second);
+            }
+        }
+        return counter;
+    }
+    public static void main(String[] args){
+        int n = 10000;
+        for(int i = 0; i<5; i++ ){
+
+            UF_HWQUPC obj = new UF_HWQUPC(n);
+            System.out.println("------------- n = "+n+"--------------------");
+            int connections  = count(n,obj);
+            System.out.println("No.of pairs generated for "+n+" objects : "+connections);
+            n*=2;
+        }
+    }
+
 }
